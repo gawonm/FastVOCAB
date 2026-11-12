@@ -1,0 +1,17 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>MyVocab 설정</title>
+<style>body{font:14px sans-serif;max-width:480px;margin:24px}label{display:block;margin:12px 0 4px}input{width:100%;padding:6px}</style>
+<h2>MyVocab 설정</h2>
+<label>Notion Integration 토큰</label>
+<input id="token" type="password" autocomplete="off">
+<label>단어장 DB ID</label>
+<input id="dbId">
+<label>Merriam-Webster Learner's 키 (선택)</label>
+<input id="mwKey" type="password" autocomplete="off">
+<label>표준국어대사전 키 (한-한 사전용)</label>
+<input id="stdictKey" type="password" autocomplete="off">
+<label>온용어 키 (공학·AI 한글 용어용)</label>
+<input id="ktermKey" type="password" autocomplete="off">
+<p><button id="save">저장</button> <span id="msg"></span></p>
+<script src="options.js"></script>

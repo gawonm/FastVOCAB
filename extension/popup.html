@@ -1,0 +1,26 @@
+<!doctype html>
+<meta charset="utf-8">
+<style>
+  body{font:14px sans-serif;width:340px;margin:12px}
+  #word{font-weight:bold;font-size:18px;margin-bottom:8px;word-break:break-all}
+  #tabs{display:flex;gap:4px}
+  #tabs button{flex:1;padding:6px 2px;cursor:pointer;border:1px solid #bbb;background:#fafafa}
+  #tabs button.hint{outline:2px dashed #2e6bd9}
+  #tabs button.on{background:#2e6bd9;color:#fff;border-color:#2e6bd9}
+  #card{margin:10px 0;padding:8px;border:1px solid #ddd;border-radius:4px;min-height:64px}
+  #card .pos{display:inline-block;font-size:12px;background:#eef;padding:0 6px;border-radius:8px}
+  #card .lbl{color:#888;font-size:12px;margin-top:6px}
+  #card .ex{color:#555;font-style:italic}
+  #save{width:100%;padding:8px;cursor:pointer}
+  #msg{margin-top:6px;min-height:1.2em}
+</style>
+<div id="word">…</div>
+<div id="tabs">
+  <button data-cat="일반"><b>1</b> 일반</button>
+  <button data-cat="공학·AI"><b>2</b> 공학·AI</button>
+  <button data-cat="한-한"><b>3</b> 한-한</button>
+</div>
+<div id="card">조회 중…</div>
+<button id="save" disabled>저장 (Enter)</button>
+<div id="msg"></div>
+<script src="popup.js"></script>

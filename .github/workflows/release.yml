@@ -1,0 +1,40 @@
+name: Release
+
+# 태그(v0.2.0 형식)를 푸시하면 확장 zip을 만들어 GitHub Release에 올린다.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: manifest 버전과 태그 일치 확인
+        run: |
+          manifest=$(python3 -c "import json;print(json.load(open('extension/manifest.json'))['version'])")
+          tag="${GITHUB_REF_NAME#v}"
+          if [ "$manifest" != "$tag" ]; then
+            echo "태그($tag)와 extension/manifest.json 버전($manifest)이 다릅니다" >&2
+            exit 1
+          fi
+
+      - name: JS 구문 검사
+        run: |
+          for f in extension/*.js; do node --input-type=module --check < "$f"; done
+
+      - name: zip 만들기
+        run: |
+          cd extension
+          zip -r -X "../FastVOCAB-${GITHUB_REF_NAME}.zip" . -x '*.DS_Store'
+
+      - name: Release 만들기
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "FastVOCAB-${GITHUB_REF_NAME}.zip" \
+            --title "FastVOCAB ${GITHUB_REF_NAME}" --generate-notes

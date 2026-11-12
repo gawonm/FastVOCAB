@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "MyVocab",
+  "version": "0.2.0",
+  "description": "드래그한 단어를 분류(일반/공학·AI/한-한)별로 Notion 단어장에 저장",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "clipboardRead"
+  ],
+  "host_permissions": [
+    "https://api.notion.com/*",
+    "https://api.dictionaryapi.dev/*",
+    "https://en.wiktionary.org/*",
+    "https://www.dictionaryapi.com/*",
+    "https://api.mymemory.translated.net/*",
+    "https://en.wikipedia.org/*",
+    "https://ko.wikipedia.org/*",
+    "https://www.wikidata.org/*",
+    "https://stdict.korean.go.kr/*",
+    "https://kli.korean.go.kr/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "MyVocab",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png"
+    }
+  },
+  "options_page": "options.html",
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      },
+      "description": "선택한 단어를 저장 (분류 선택 팝업)"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
