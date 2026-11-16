@@ -209,3 +209,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
   );
   return true; // 비동기 응답
 });
+
+// 처음 설치하면 설정(토큰/DB ID)부터 하도록 옵션 페이지를 연다
+chrome.runtime.onInstalled.addListener(({ reason }) => {
+  if (reason === 'install') chrome.runtime.openOptionsPage();
+});

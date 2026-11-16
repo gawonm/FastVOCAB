@@ -47,7 +47,7 @@ DB에 아래 속성이 이름·타입 그대로 있어야 저장됩니다. Integ
 | 출처 URL | URL |
 
 ## 단축키가 안 먹을 때
-다른 앱이나 확장과 충돌할 수 있습니다. `chrome://extensions/shortcuts`에서 MyVocab의 단축키를 바꾸세요. macOS에서 Option 조합은 특수문자 입력과 겹칠 수 있습니다.
+다른 앱이나 확장과 충돌할 수 있습니다. `chrome://extensions/shortcuts`에서 FastVOCAB의 단축키를 바꾸세요. macOS에서 Option 조합은 특수문자 입력과 겹칠 수 있습니다.
 
 ## 배포
 
@@ -60,12 +60,12 @@ git push origin v0.3.0
 ```
 `.github/workflows/release.yml`이 태그와 manifest 버전이 같은지 확인하고, JS 구문을 검사한 뒤, `FastVOCAB-v0.3.0.zip`을 Release에 올립니다. 버전이 다르면 실패합니다.
 
-### 2) Chrome 웹 스토어 (수동, 선택)
-스토어에 올리면 개발자 모드 없이 설치·자동 업데이트가 됩니다. 첫 제출은 웹 대시보드에서 직접 해야 합니다.
-1. [Chrome 웹 스토어 개발자 대시보드](https://chrome.google.com/webstore/devconsole)에서 개발자 등록 (일회성 등록비가 있습니다).
-2. Release의 zip을 **새 항목**으로 업로드합니다.
-3. 필요한 자료: 스크린샷, 설명, 개인정보 처리방침 URL (`PRIVACY.md`의 레포 URL을 쓸 수 있습니다), 권한 사용 사유(`PRIVACY.md`에 정리).
-4. 검토에는 시간이 걸리며, `clipboardRead`와 다수의 호스트 권한 때문에 추가 소명을 요구받을 수 있습니다.
+### 2) Chrome 웹 스토어 (다른 사람에게 배포할 때)
+스토어에 올리면 개발자 모드 없이 설치되고 자동 업데이트됩니다. 첫 제출은 웹 대시보드에서 직접 해야 합니다.
+1. [개발자 대시보드](https://chrome.google.com/webstore/devconsole)에서 개발자 등록 (일회성 등록비)
+2. Release의 zip을 **새 항목**으로 업로드
+3. 입력할 문구, 권한 사유, 스크린샷은 [`store/LISTING.md`](store/LISTING.md)와 `store/screenshots/`에 있습니다.
+4. 이후 업데이트: `manifest.json` 버전을 올리고 새 zip을 대시보드에 업로드
 
 ## 구조
 ```

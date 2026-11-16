@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "MyVocab",
+  "name": "FastVOCAB",
   "version": "0.2.0",
   "description": "드래그한 단어를 분류(일반/공학·AI/한-한)별로 Notion 단어장에 저장",
   "permissions": [
@@ -26,7 +26,7 @@
     "type": "module"
   },
   "action": {
-    "default_title": "MyVocab",
+    "default_title": "FastVOCAB",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
