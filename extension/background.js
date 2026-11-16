@@ -106,7 +106,7 @@ const WRONG = { 일반: '영어 단어나 숙어(6단어 이하)를 선택하세
 // 온용어(전문용어): 한글 용어는 정의, 영어 대역어를 돌려준다.
 // -> { def, en, example } | { error } | null(결과 없음 / 키 없음)
 // 이 API는 오류도 HTTP 200으로 주고, 사유는 channel.return_object 문자열에 담긴다 (예: 000 + "key 값이 없습니다.").
-// 키 형식이 틀리거나 num이 빠지면 JSON이 아닌 사이트 HTML이 오므로, 파싱 실패도 사유로 돌려준다.
+// num이 빠지는 등 요청이 어긋나면 JSON이 아닌 사이트 HTML이 오므로, 파싱 실패도 사유로 돌려준다.
 const KTERM_CODE = {
   20: '등록되지 않은 인증키입니다',
   21: '사용할 수 없는 인증키입니다',
@@ -114,11 +114,13 @@ const KTERM_CODE = {
   100: '인증키가 올바르지 않거나 서버가 요청을 처리하지 못했습니다',
 };
 async function lookupKterm(word, key) {
+  // 키 형식은 서버가 판단한다. 문서는 '16진수 32자리'라고 하지만 발급 키가 다를 수 있어 미리 거르지 않는다.
+  // 복사할 때 섞이는 공백·제로폭 문자·따옴표만 걷어낸다.
+  key = key.replace(/[\s\u200b-\u200d\ufeff'"]/g, '');
   if (!key) return null;
-  if (!/^[0-9a-f]{32}$/i.test(key)) return { error: '온용어 키는 16진수 32자리입니다 (옵션 확인)' };
   const url =
     `https://kli.korean.go.kr/term/api/search.do?key=${encodeURIComponent(key)}` +
-    `&apiSearchWord=${encodeURIComponent(word)}&start=1&num=10`;
+    `&apiSearchWord=${encodeURIComponent(word)}&num=10`;
   let raw;
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
@@ -132,7 +134,7 @@ async function lookupKterm(word, key) {
     json = JSON.parse(raw);
   } catch {
     console.warn('온용어가 JSON이 아닌 응답을 반환', raw.slice(0, 200));
-    return { error: '온용어가 JSON이 아닌 응답을 반환했습니다 (키를 확인하세요)' };
+    return { error: '온용어가 JSON이 아닌 응답을 반환했습니다 (서비스 워커 콘솔에 응답 앞부분이 남아 있습니다)' };
   }
   const ch = json?.channel;
   const first = [].concat(ch?.return_object ?? [])[0];
