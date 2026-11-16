@@ -103,13 +103,47 @@ const VALID = {
 };
 const WRONG = { 일반: '영어 단어나 숙어(6단어 이하)를 선택하세요', '공학·AI': '영어 또는 한글 용어를 선택하세요', '한-한': '한글 단어 하나만 선택하세요' };
 
-// 온용어(전문용어): 한글 용어는 정의, 영어 대역어를 돌려준다. 키가 없거나 실패하면 null.
-function lookupKterm(word, key) {
+// 온용어(전문용어): 한글 용어는 정의, 영어 대역어를 돌려준다.
+// -> { def, en, example } | { error } | null(결과 없음 / 키 없음)
+// 이 API는 오류도 HTTP 200으로 주고, 사유는 channel.return_object 문자열에 담긴다 (예: 000 + "key 값이 없습니다.").
+// 키 형식이 틀리거나 num이 빠지면 JSON이 아닌 사이트 HTML이 오므로, 파싱 실패도 사유로 돌려준다.
+const KTERM_CODE = {
+  20: '등록되지 않은 인증키입니다',
+  21: '사용할 수 없는 인증키입니다',
+  22: '일일 호출 한도를 초과했습니다',
+  100: '인증키가 올바르지 않거나 서버가 요청을 처리하지 못했습니다',
+};
+async function lookupKterm(word, key) {
   if (!key) return null;
-  return getJson(
-    `https://kli.korean.go.kr/term/api/search.do?key=${encodeURIComponent(key)}&apiSearchWord=${encodeURIComponent(word)}&num=10`,
-    parseKterm,
-  );
+  if (!/^[0-9a-f]{32}$/i.test(key)) return { error: '온용어 키는 16진수 32자리입니다 (옵션 확인)' };
+  const url =
+    `https://kli.korean.go.kr/term/api/search.do?key=${encodeURIComponent(key)}` +
+    `&apiSearchWord=${encodeURIComponent(word)}&start=1&num=10`;
+  let raw;
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    raw = await res.text();
+    if (!res.ok) return { error: `온용어 HTTP ${res.status}` };
+  } catch (e) {
+    return { error: `온용어 호출 실패: ${e.name === 'TimeoutError' ? '8초 안에 응답 없음' : e.message}` };
+  }
+  let json;
+  try {
+    json = JSON.parse(raw);
+  } catch {
+    console.warn('온용어가 JSON이 아닌 응답을 반환', raw.slice(0, 200));
+    return { error: '온용어가 JSON이 아닌 응답을 반환했습니다 (키를 확인하세요)' };
+  }
+  const ch = json?.channel;
+  const first = [].concat(ch?.return_object ?? [])[0];
+  const code = Number(ch?.returnCode ?? first?.returnCode);
+  if (Number.isFinite(code) && code !== 1) {
+    const msg = typeof ch?.return_object === 'string' ? ch.return_object : first?.message ?? KTERM_CODE[code] ?? '';
+    return { error: `온용어 오류 ${String(code).padStart(3, '0')}: ${KTERM_CODE[code] ?? msg}${KTERM_CODE[code] && msg ? ` (${msg})` : ''}` };
+  }
+  const r = parseKterm(json);
+  if (!r) console.warn('온용어 결과 없음', raw.slice(0, 300));
+  return r;
 }
 
 // -> { ko, en, pos, example, found }
@@ -142,11 +176,15 @@ async function resolve(category, word, { mwKey, stdictKey, ktermKey }) {
       const t = await lookupTech(word);
       if (t) base = { ko: short(t.ko), en: short(t.en), example: '' };
     }
+    let ktermError = '';
     if (!base) {
       const k = await lookupKterm(word, ktermKey);
-      if (k) base = { ko: short(k.def), en: k.en, example: k.example };
+      if (k?.error) ktermError = k.error;
+      else if (k) base = { ko: short(k.def), en: k.en, example: k.example };
     }
     if (base) return { ...base, ko: base.ko || (await toKorean(word)), pos: '명사', found: true };
+    // 한글 용어는 온용어가 유일한 출처이므로, 오류를 '결과 없음'으로 숨기지 않고 사유를 보여 준다
+    if (isKo && ktermError) throw new Error(ktermError);
     if (isKo) return { ko: '', en: '', pos: '기타', example: '', found: false };
     return { ko: await toKorean(word), en: '', pos: '기타', example: '', found: false };
   }
