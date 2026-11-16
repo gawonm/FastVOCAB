@@ -1,0 +1,13 @@
+/* Pretendard (SIL OFL 1.1) — https://github.com/orioncactus/pretendard, 라이선스는 LICENSE.txt */
+@font-face {
+  font-family: 'Pretendard';
+  font-weight: 400;
+  font-display: swap;
+  src: url('Pretendard-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Pretendard';
+  font-weight: 700;
+  font-display: swap;
+  src: url('Pretendard-Bold.woff2') format('woff2');
+}

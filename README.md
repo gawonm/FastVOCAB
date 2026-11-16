@@ -75,4 +75,5 @@ extension/
   dict.js         사전 응답 파서
   popup.html/js   분류 선택·미리보기
   options.html/js 설정 화면
+  fonts/          Pretendard (SIL OFL 1.1, 확장에 포함되어 외부 요청 없이 로드)
 ```
