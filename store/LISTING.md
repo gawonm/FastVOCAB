@@ -31,7 +31,7 @@ FastVOCAB는 읽던 페이지를 벗어나지 않고 모르는 단어를 단어�
 - PDF: 드래그 후 복사(Ctrl/⌘+C)하고 단축키를 누르면 복사한 텍스트로 조회
 
 준비물
-- Notion Integration 토큰과 단어장 DB (속성 구성은 README 참고)
+- Notion Integration 토큰과 단어장 DB (템플릿 복제: https://painted-plum-a54.notion.site/41af7cbca87081118028fe9bf5f1b8bf)
 - 한-한과 한글 전문용어는 국립국어원 API 키가 추가로 필요 (선택)
 
 데이터

@@ -33,8 +33,16 @@ Chrome에서 드래그한 단어를 단축키로 조회해서 뜻과 함께 Noti
 
 키는 `chrome.storage.local`에만 저장되며 레포나 코드에 포함되지 않습니다.
 
+### Notion 단어장 준비 (템플릿 복제)
+1. [FastVOCAB 단어장 템플릿](https://painted-plum-a54.notion.site/41af7cbca87081118028fe9bf5f1b8bf)을 열고 우측 상단 **복제**를 눌러 내 워크스페이스로 가져옵니다.
+2. [Notion Integrations](https://www.notion.so/my-integrations)에서 새 Integration을 만들고 **Internal Integration Secret**(토큰)을 복사합니다.
+3. 복제한 DB 페이지 우측 상단 `⋯` → **연결(Connections)** → 방금 만든 Integration을 추가합니다. **이 단계를 빠뜨리면 저장이 실패합니다.**
+4. DB 주소에서 `notion.so/`(또는 `notion.site/`) 뒤, `?v=` 앞의 32자리가 DB ID입니다.
+   예: `https://www.notion.so/<워크스페이스>/`**`41af7cbca87081118028fe9bf5f1b8bf`**`?v=...`
+5. 확장 옵션에 토큰과 DB ID를 입력하고 저장합니다.
+
 ### Notion DB 속성
-DB에 아래 속성이 이름·타입 그대로 있어야 저장됩니다. Integration을 해당 DB에 연결(Connections)하는 것도 잊지 마세요.
+템플릿을 쓰지 않고 직접 만들 경우, 아래 속성이 이름·타입 그대로 있어야 저장됩니다. 속성 이름을 바꾸면 저장이 실패합니다.
 
 | 속성 | 타입 |
 |---|---|
