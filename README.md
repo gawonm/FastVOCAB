@@ -22,16 +22,16 @@ Chrome에서 드래그한 단어를 단축키로 조회해서 뜻과 함께 Noti
 새 zip을 받아 같은 폴더에 덮어쓴 뒤 `chrome://extensions`에서 새로고침을 누릅니다. 설정값은 유지됩니다.
 
 ## 설정
-설정은 브라우저마다 따로 저장되므로 PC마다 한 번씩 입력해야 합니다.
+**Notion 두 칸만 채우면 바로 쓸 수 있습니다.** 나머지 키는 선택이며, 비워 두면 해당 기능만 꺼집니다. 키가 없는 분류는 팝업 탭에 "키 필요"로 표시되고, 누르면 조회 대신 설정 안내가 나옵니다.
 
-| 항목 | 필수 | 용도 |
+| 항목 | 필수 | 없으면 |
 |---|---|---|
-| Notion Integration 토큰, 단어장 DB ID | 필수 | 저장 |
-| Merriam-Webster Learner's 키 | 선택 | 영어 뜻 (없으면 dictionaryapi.dev, Wiktionary) |
-| 표준국어대사전 키 | 한-한 사용 시 | 한글 뜻 |
-| 온용어 키 | 한글 공학 용어 사용 시 | 한글 전문용어 |
+| Notion Integration 토큰, 단어장 DB ID | **필수** | 저장할 수 없음 (DB ID 칸에는 DB 주소를 통째로 붙여넣어도 됨) |
+| 표준국어대사전 키 | 선택 | 3 한-한 분류만 꺼짐 |
+| 온용어 키 | 선택 | 2 공학·AI에서 한글 용어만 꺼짐 (영어 용어는 위키피디아로 동작) |
+| Merriam-Webster Learner's 키 | 선택 | 무료 사전(dictionaryapi.dev, Wiktionary)으로 조회 |
 
-키는 `chrome.storage.local`에만 저장되며 레포나 코드에 포함되지 않습니다.
+설정은 브라우저마다 `chrome.storage.local`에 따로 저장되므로 PC마다 한 번씩 입력해야 합니다. 레포나 코드에는 키가 포함되지 않습니다.
 
 ### Notion 단어장 준비 (템플릿 복제)
 1. [FastVOCAB 단어장 템플릿](https://painted-plum-a54.notion.site/41af7cbca87081118028fe9bf5f1b8bf)을 열고 우측 상단 **복제**를 눌러 내 워크스페이스로 가져옵니다.

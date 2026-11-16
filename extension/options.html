@@ -2,19 +2,44 @@
 <meta charset="utf-8">
 <link rel="stylesheet" href="fonts/pretendard.css">
 <title>FastVOCAB 설정</title>
-<style>button,input{font:inherit}body{font:14px Pretendard,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;max-width:480px;margin:24px}label{display:block;margin:12px 0 4px}input{width:100%;padding:6px}</style>
+<style>
+  button,input{font:inherit}
+  body{font:14px Pretendard,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;max-width:520px;margin:24px;color:#222}
+  fieldset{border:1px solid #ddd;border-radius:8px;padding:4px 16px 16px;margin:16px 0}
+  legend{font-weight:700;padding:0 6px}
+  .req legend::after{content:" 필수";color:#c0392b;font-size:12px}
+  .opt legend::after{content:" 선택";color:#888;font-size:12px}
+  label{display:block;margin:12px 0 4px;font-weight:700}
+  input{width:100%;padding:6px;box-sizing:border-box}
+  .help{color:#777;font-size:12px;margin-top:4px}
+  #msg.err{color:#c0392b}
+</style>
 <h2>FastVOCAB 설정</h2>
-<p>처음이라면 <a href="https://github.com/gawonm/FastVOCAB#설정" target="_blank">설정 가이드</a>를 먼저 보세요.
-Notion 토큰과 DB ID만 있으면 시작할 수 있고, 나머지 키는 선택입니다.</p>
-<label>Notion Integration 토큰</label>
-<input id="token" type="password" autocomplete="off">
-<label>단어장 DB ID</label>
-<input id="dbId">
-<label>Merriam-Webster Learner's 키 (선택)</label>
-<input id="mwKey" type="password" autocomplete="off">
-<label>표준국어대사전 키 (한-한 사전용)</label>
-<input id="stdictKey" type="password" autocomplete="off">
-<label>온용어 키 (공학·AI 한글 용어용)</label>
-<input id="ktermKey" type="password" autocomplete="off">
+<p>Notion 두 칸만 채우면 바로 쓸 수 있습니다. 처음이라면 <a href="https://github.com/gawonm/FastVOCAB#notion-단어장-준비-템플릿-복제" target="_blank">설정 가이드</a>를 보세요.</p>
+
+<fieldset class="req">
+  <legend>Notion</legend>
+  <label for="token">Integration 토큰</label>
+  <input id="token" type="password" autocomplete="off">
+  <div class="help"><a href="https://www.notion.so/my-integrations" target="_blank">Notion Integrations</a>에서 만든 토큰. 단어장 DB의 연결(Connections)에 이 Integration을 추가해야 합니다.</div>
+  <label for="dbId">단어장 DB ID</label>
+  <input id="dbId" placeholder="DB 주소를 통째로 붙여넣어도 됩니다">
+  <div class="help">DB 주소의 <code>?v=</code> 앞 32자리</div>
+</fieldset>
+
+<fieldset class="opt">
+  <legend>추가 사전</legend>
+  <div class="help">비워 두면 해당 기능만 꺼집니다. 영어 단어·숙어와 영어 공학 용어는 키 없이 동작합니다.</div>
+  <label for="stdictKey">표준국어대사전 키</label>
+  <input id="stdictKey" type="password" autocomplete="off">
+  <div class="help">없으면 <b>3 한-한</b> 분류를 쓸 수 없습니다.</div>
+  <label for="ktermKey">온용어 키</label>
+  <input id="ktermKey" type="password" autocomplete="off">
+  <div class="help">없으면 <b>2 공학·AI</b>에서 한글 용어를 조회할 수 없습니다. <a href="https://kli.korean.go.kr/term/bbs/indexOpenApiInfo.do" target="_blank">발급 안내</a></div>
+  <label for="mwKey">Merriam-Webster Learner's 키</label>
+  <input id="mwKey" type="password" autocomplete="off">
+  <div class="help">없어도 무료 사전(dictionaryapi.dev, Wiktionary)으로 조회합니다. 있으면 학습자용 뜻풀이를 먼저 씁니다.</div>
+</fieldset>
+
 <p><button id="save">저장</button> <span id="msg"></span></p>
 <script src="options.js"></script>
