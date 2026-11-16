@@ -28,7 +28,6 @@ Chrome에서 드래그한 단어를 단축키로 조회해서 뜻과 함께 Noti
 |---|---|---|
 | Notion Integration 토큰, 단어장 DB ID | **필수** | 저장할 수 없음 (DB ID 칸에는 DB 주소를 통째로 붙여넣어도 됨) |
 | 표준국어대사전 키 | 선택 | 3 한-한 분류만 꺼짐 |
-| 온용어 키 | 선택 | 2 공학·AI에서 한글 용어만 꺼짐 (영어 용어는 위키피디아로 동작) |
 | Merriam-Webster Learner's 키 | 선택 | 무료 사전(dictionaryapi.dev, Wiktionary)으로 조회 |
 
 설정은 브라우저마다 `chrome.storage.local`에 따로 저장되므로 PC마다 한 번씩 입력해야 합니다. 레포나 코드에는 키가 포함되지 않습니다.

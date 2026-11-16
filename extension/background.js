@@ -1,4 +1,4 @@
-import { parseEntry, parseKterm, parseLearners, parseStdict, parseWiktionary } from './dict.js';
+import { parseEntry, parseLearners, parseStdict, parseWiktionary } from './dict.js';
 
 const NOTION = 'https://api.notion.com/v1';
 
@@ -19,11 +19,11 @@ async function notion(path, token, body) {
 }
 
 // 실패(네트워크/4xx/5xx)는 모두 null — 호출 측에서 다음 소스로 넘어간다
-async function getJson(url, parse = (j) => j) {
+async function getJson(url, parse = (j) => j, headers = {}) {
   const u = new URL(url);
   const where = u.origin + u.pathname; // 쿼리에 API 키가 있으므로 로그에는 넣지 않는다
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    const res = await fetch(url, { headers, signal: AbortSignal.timeout(8000) });
     const raw = await res.text();
     if (!res.ok) {
       console.warn('getJson HTTP', res.status, where, raw.slice(0, 200));
@@ -65,31 +65,71 @@ async function toKorean(word) {
   );
 }
 
-const wiki = (lang, title) =>
-  getJson(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
+// 공학·AI: 위키백과 검색 한 번으로 후보 20개의 제목·짧은 설명·첫 문단·다른 언어판 제목을 받아
+// AI·컴퓨팅 분야 문서를 고른다. 예) '트랜스포머' -> 영화·변압기가 아니라 '트랜스포머 (기계 학습)'.
+// 위키미디어는 브라우저 클라이언트에 Api-User-Agent로 출처를 밝히도록 권한다.
+const WIKI_HEADERS = { 'Api-User-Agent': 'FastVOCAB (https://github.com/gawonm/FastVOCAB)' };
+const AI_RE =
+  /machine learning|deep learning|artificial intelligence|neural|language model|natural language|기계 ?학습|머신 ?러닝|딥 ?러닝|인공 ?지능|신경망|언어 ?모델|자연어/i;
+const TECH_RE =
+  /comput|software|programming|algorithm|data|network|protocol|cryptograph|operating system|engineering|electronic|semiconductor|statistic|mathemat|컴퓨터|컴퓨팅|소프트웨어|프로그래밍|알고리즘|데이터|네트워크|프로토콜|암호|운영 ?체제|공학|전자|반도체|통계|수학|정보/i;
+const INTRO = 'exintro=1&explaintext=1&exsentences=3';
 
-// 공학·AI: 영어판 위키 요약 -> Wikidata 항목 ID로 한국어판 문서 연결
-// 동음이의 문서("UX may refer to:")는 뜻이 아니므로 근거 자료로 쓰지 않는다.
-const usable = (p) => (p?.extract && p.type !== 'disambiguation' ? p : null);
+const wikiApi = (lang, params) =>
+  getJson(
+    `https://${lang}.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&${params}`,
+    undefined,
+    WIKI_HEADERS,
+  );
 
-async function lookupTech(term) {
-  let en = usable(await wiki('en', term));
-  if (!en) {
-    const s = await getJson(`https://en.wikipedia.org/w/rest.php/v1/search/title?q=${encodeURIComponent(term)}&limit=1`);
-    const title = s?.pages?.[0]?.title;
-    en = title ? usable(await wiki('en', title)) : null;
+// 관련도: 제목이 용어와 같으면 +3, 제목이나 짧은 설명에 용어가 들어 있으면 +1.
+// 분야: 제목 괄호·짧은 설명이 AI면 +5, 그 밖의 공학·컴퓨팅이면 +3, 본문 첫머리만 AI면 +2.
+// 용어와 무관한 문서, 동음이의 문서, 본문 없는 문서는 버린다. 동점이면 검색 순위가 앞선 것.
+export function pickTech(pages, term) {
+  const q = term.toLowerCase().replace(/\s+/g, ' ');
+  let best = null;
+  for (const p of pages ?? []) {
+    if (!p.extract || (p.pageprops && 'disambiguation' in p.pageprops)) continue;
+    const base = p.title.toLowerCase().replace(/\s*\(.*\)$/, '');
+    const desc = p.description ?? '';
+    const titleScore = base === q ? 3 : base.includes(q) || desc.toLowerCase().includes(q) ? 1 : 0;
+    if (!titleScore) continue;
+    const about = `${p.title} ${desc}`;
+    const topic = AI_RE.test(about) ? 5 : TECH_RE.test(about) ? 3 : AI_RE.test(p.extract.slice(0, 150)) ? 2 : 0;
+    const c = { page: p, score: titleScore + topic, topic, index: p.index ?? 99 };
+    if (!best || c.score > best.score || (c.score === best.score && c.index < best.index)) best = c;
   }
-  if (!en) return null;
-  let ko = '';
-  const id = en.wikibase_item;
-  if (id) {
-    const d = await getJson(
-      `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${id}&props=sitelinks&sitefilter=kowiki&format=json&origin=*`,
+  return best;
+}
+
+// -> { ko, en, title } | null. lang은 검색어의 언어, 나머지 언어 뜻은 언어 간 링크로 가져온다.
+async function lookupTech(term, lang) {
+  const other = lang === 'ko' ? 'en' : 'ko';
+  const search = async (q) =>
+    pickTech(
+      (
+        await wikiApi(
+          lang,
+          `generator=search&gsrlimit=20&gsrsearch=${encodeURIComponent(q)}` +
+            `&prop=extracts|description|pageprops|langlinks&${INTRO}&exlimit=20&ppprop=disambiguation&lllang=${other}&lllimit=max`,
+        )
+      )?.query?.pages,
+      term,
     );
-    const koTitle = d?.entities?.[id]?.sitelinks?.kowiki?.title;
-    if (koTitle) ko = (await wiki('ko', koTitle))?.extract ?? '';
+  let best = await search(term);
+  // 분야가 맞는 후보가 없으면 분야어를 붙여 한 번 더 찾는다 (요청 수를 아끼려고 필요할 때만)
+  if (!best?.topic) {
+    const again = await search(`${term} ${lang === 'ko' ? '컴퓨터' : 'computing'}`);
+    if (again?.topic) best = again;
   }
-  return { en: en.extract, ko };
+  if (!best) return null;
+  const p = best.page;
+  const otherTitle = p.langlinks?.[0]?.title;
+  const otherText = otherTitle
+    ? ((await wikiApi(other, `titles=${encodeURIComponent(otherTitle)}&prop=extracts&${INTRO}&redirects=1`))?.query
+        ?.pages?.[0]?.extract ?? '')
+    : '';
+  return lang === 'ko' ? { ko: p.extract, en: otherText, title: p.title } : { en: p.extract, ko: otherText, title: p.title };
 }
 
 const short = (s) => (s.length > 300 ? s.slice(0, 300) + '…' : s);
@@ -103,53 +143,8 @@ const VALID = {
 };
 const WRONG = { 일반: '영어 단어나 숙어(6단어 이하)를 선택하세요', '공학·AI': '영어 또는 한글 용어를 선택하세요', '한-한': '한글 단어 하나만 선택하세요' };
 
-// 온용어(전문용어): 한글 용어는 정의, 영어 대역어를 돌려준다.
-// -> { def, en, example } | { error } | null(결과 없음 / 키 없음)
-// 이 API는 오류도 HTTP 200으로 주고, 사유는 channel.return_object 문자열에 담긴다 (예: 000 + "key 값이 없습니다.").
-// num이 빠지는 등 요청이 어긋나면 JSON이 아닌 사이트 HTML이 오므로, 파싱 실패도 사유로 돌려준다.
-const KTERM_CODE = {
-  20: '등록되지 않은 인증키입니다',
-  21: '사용할 수 없는 인증키입니다',
-  22: '일일 호출 한도를 초과했습니다',
-  100: '인증키가 올바르지 않거나 서버가 요청을 처리하지 못했습니다',
-};
-async function lookupKterm(word, key) {
-  // 키 형식은 서버가 판단한다. 문서는 '16진수 32자리'라고 하지만 발급 키가 다를 수 있어 미리 거르지 않는다.
-  // 복사할 때 섞이는 공백·제로폭 문자·따옴표만 걷어낸다.
-  key = key.replace(/[\s\u200b-\u200d\ufeff'"]/g, '');
-  if (!key) return null;
-  const url =
-    `https://kli.korean.go.kr/term/api/search.do?key=${encodeURIComponent(key)}` +
-    `&apiSearchWord=${encodeURIComponent(word)}&num=10`;
-  let raw;
-  try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-    raw = await res.text();
-    if (!res.ok) return { error: `온용어 HTTP ${res.status}` };
-  } catch (e) {
-    return { error: `온용어 호출 실패: ${e.name === 'TimeoutError' ? '8초 안에 응답 없음' : e.message}` };
-  }
-  let json;
-  try {
-    json = JSON.parse(raw);
-  } catch {
-    console.warn('온용어가 JSON이 아닌 응답을 반환', raw.slice(0, 200));
-    return { error: '온용어가 JSON이 아닌 응답을 반환했습니다 (서비스 워커 콘솔에 응답 앞부분이 남아 있습니다)' };
-  }
-  const ch = json?.channel;
-  const first = [].concat(ch?.return_object ?? [])[0];
-  const code = Number(ch?.returnCode ?? first?.returnCode);
-  if (Number.isFinite(code) && code !== 1) {
-    const msg = typeof ch?.return_object === 'string' ? ch.return_object : first?.message ?? KTERM_CODE[code] ?? '';
-    return { error: `온용어 오류 ${String(code).padStart(3, '0')}: ${KTERM_CODE[code] ?? msg}${KTERM_CODE[code] && msg ? ` (${msg})` : ''}` };
-  }
-  const r = parseKterm(json);
-  if (!r) console.warn('온용어 결과 없음', raw.slice(0, 300));
-  return r;
-}
-
 // -> { ko, en, pos, example, found }
-async function resolve(category, word, { mwKey, stdictKey, ktermKey }) {
+async function resolve(category, word, { mwKey, stdictKey }) {
   if (category === '한-한') {
     if (!stdictKey) throw new Error('옵션에서 표준국어대사전 키를 설정하세요');
     if (!/^[0-9a-f]{32}$/i.test(stdictKey)) throw new Error('표준국어대사전 키는 16진수 32자리입니다 (옵션 확인)');
@@ -168,27 +163,14 @@ async function resolve(category, word, { mwKey, stdictKey, ktermKey }) {
     return { ko: r?.def ?? '', en: '', pos: r?.pos ?? '기타', example: '', found: !!r };
   }
   if (category === '공학·AI') {
+    // 한글·영어 모두 위키백과에서 AI·컴퓨팅 분야 문서를 찾는다 (키 불필요)
     const isKo = /[가-힣]/.test(word);
-    // 한글 용어는 온용어 키가 있어야 한다 (위키 영어판은 한글 제목으로 못 찾음)
-    if (isKo && !ktermKey) throw new Error('한글 용어는 옵션에서 온용어 키를 설정해야 합니다');
-
-    // 한글은 온용어, 영어는 위키(영/한 요약) -> 없으면 온용어
-    let base = null; // { ko, en, example }
-    if (!isKo) {
-      const t = await lookupTech(word);
-      if (t) base = { ko: short(t.ko), en: short(t.en), example: '' };
+    const t = await lookupTech(word, isKo ? 'ko' : 'en');
+    if (t) {
+      console.log('공학·AI 문서:', t.title);
+      return { ko: short(t.ko) || (isKo ? '' : await toKorean(word)), en: short(t.en), pos: '명사', example: '', found: true };
     }
-    let ktermError = '';
-    if (!base) {
-      const k = await lookupKterm(word, ktermKey);
-      if (k?.error) ktermError = k.error;
-      else if (k) base = { ko: short(k.def), en: k.en, example: k.example };
-    }
-    if (base) return { ...base, ko: base.ko || (await toKorean(word)), pos: '명사', found: true };
-    // 한글 용어는 온용어가 유일한 출처이므로, 오류를 '결과 없음'으로 숨기지 않고 사유를 보여 준다
-    if (isKo && ktermError) throw new Error(ktermError);
-    if (isKo) return { ko: '', en: '', pos: '기타', example: '', found: false };
-    return { ko: await toKorean(word), en: '', pos: '기타', example: '', found: false };
+    return { ko: isKo ? '' : await toKorean(word), en: '', pos: '기타', example: '', found: false };
   }
   // 단어는 사전 조회와 번역을 동시에. 숙어는 번역 메모리가 엉뚱한 항목을 1순위로 주는 일이 많아
   // (예: out of the box -> '수백 대 지원 가능') 구절 대신 영어 뜻풀이를 번역한다. 뜻풀이가 없거나 번역이 비면 구절 번역.
@@ -199,7 +181,7 @@ async function resolve(category, word, { mwKey, stdictKey, ktermKey }) {
 }
 
 async function getConfig() {
-  const cfg = await chrome.storage.local.get(['token', 'dbId', 'mwKey', 'stdictKey', 'ktermKey']);
+  const cfg = await chrome.storage.local.get(['token', 'dbId', 'mwKey', 'stdictKey']);
   if (!cfg.token || !cfg.dbId) throw new Error('옵션 페이지에서 토큰/DB ID를 먼저 설정하세요');
   return cfg;
 }

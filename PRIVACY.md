@@ -12,8 +12,8 @@ FastVOCAB는 별도 서버를 운영하지 않으며 사용자의 데이터를 �
 |---|---|
 | Merriam-Webster Learner's, dictionaryapi.dev, Wiktionary | 영어 뜻 조회 |
 | MyMemory | 한글 번역 |
-| Wikipedia, Wikidata | 공학·AI 용어 조회 |
-| 표준국어대사전, 온용어 (국립국어원) | 한글 용어 조회 |
+| Wikipedia (영어·한국어) | 공학·AI 용어 조회 |
+| 표준국어대사전 (국립국어원) | 한-한 뜻 조회 |
 | Notion | 저장하기를 눌렀을 때 단어, 뜻, 예문, 현재 페이지 URL을 사용자의 DB에 기록 |
 
 ## 권한을 쓰는 이유

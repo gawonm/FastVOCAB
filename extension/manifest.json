@@ -17,9 +17,7 @@
     "https://api.mymemory.translated.net/*",
     "https://en.wikipedia.org/*",
     "https://ko.wikipedia.org/*",
-    "https://www.wikidata.org/*",
-    "https://stdict.korean.go.kr/*",
-    "https://kli.korean.go.kr/*"
+    "https://stdict.korean.go.kr/*"
   ],
   "background": {
     "service_worker": "background.js",

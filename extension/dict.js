@@ -59,23 +59,6 @@ export function parseEntry(json) {
   return { pos: POS[meaning.partOfSpeech] ?? '기타', en, example };
 }
 
-// 온용어 정의의 &#44; 같은 숫자 엔티티·태그 정리
-const decode = (s = '') =>
-  s.replace(/&#(\d+);/g, (_, n) => String.fromCharCode(n)).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-
-// 온용어(K-term) 응답 -> { def, en, example }. 결과는 정확도순이므로 첫 번째 정의 있는 항목을 쓴다.
-// 정의가 길면 <br> 앞 첫 문단만.
-export function parseKterm(json) {
-  const items = [].concat(json?.channel?.return_object ?? []).flatMap((o) => o?.resultlist ?? []);
-  const item = items.find((i) => i.definition);
-  if (!item) return null;
-  return {
-    def: decode(item.definition.split(/<br\s*\/?>/i)[0]),
-    en: item.translation || item.origin || '',
-    example: decode(item.use_ex),
-  };
-}
-
 // 표준국어대사전 응답 -> { pos, def }. 응답 구조는 공식 문서로 미확인 — sense가 객체/배열 어느 쪽이든 받는다.
 const KO_POS = ['명사', '동사', '형용사', '부사', '접속사'];
 export function parseStdict(json) {

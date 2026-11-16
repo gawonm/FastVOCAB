@@ -11,8 +11,6 @@ let cfg = {}; // 옵션에 저장된 키 (어떤 분류를 쓸 수 있는지 판
 // 이 분류에 필요한 키가 없으면 안내 문구, 있으면 ''. background의 resolve()와 같은 조건이다.
 function needKey(category) {
   if (category === '한-한' && !cfg.stdictKey) return '한-한 사전은 표준국어대사전 키가 있어야 쓸 수 있어요.';
-  if (category === '공학·AI' && /[가-힣]/.test(word) && !cfg.ktermKey)
-    return '한글 공학 용어는 온용어 키가 있어야 조회할 수 있어요. 영어 용어는 키 없이 됩니다.';
   return '';
 }
 
@@ -136,7 +134,7 @@ $('save').onclick = save;
     return;
   }
   $('word').textContent = viaClipboard ? `${word}  (복사한 텍스트)` : word;
-  cfg = await chrome.storage.local.get(['token', 'dbId', 'stdictKey', 'ktermKey']);
+  cfg = await chrome.storage.local.get(['token', 'dbId', 'stdictKey']);
   if (!cfg.token || !cfg.dbId) return showSetup('먼저 설정에서 Notion 토큰과 단어장 DB ID를 입력해 주세요.');
   // 키가 없어 못 쓰는 분류는 탭에 미리 표시한다 (누르면 조회 대신 안내)
   for (const b of tabs) {
@@ -145,9 +143,9 @@ $('save').onclick = save;
     b.insertAdjacentHTML('beforeend', '<span class="need">키 필요</span>');
   }
   // 분류를 고른 뒤에야 조회한다. 힌트(한글이면 한-한, 아니면 일반)는 표시만 하고 Enter로 확정.
-  // 한글인데 한-한 키가 없고 온용어 키만 있으면 공학·AI를 추천한다.
+  // 한글인데 한-한 키가 없으면 키 없이 되는 공학·AI를 추천한다.
   const ko = /[가-힣]/.test(word);
-  const hint = tabs[ko ? (!cfg.stdictKey && cfg.ktermKey ? 1 : 2) : 0];
+  const hint = tabs[ko ? (cfg.stdictKey ? 2 : 1) : 0];
   hint.classList.add('hint');
   $('card').textContent = `분류를 선택하세요 (1·2·3, Enter = ${hint.dataset.cat})`;
   document.onkeydown = (e) => {

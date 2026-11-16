@@ -25,14 +25,14 @@ FastVOCAB는 읽던 페이지를 벗어나지 않고 모르는 단어를 단어�
 
 기능
 - 영어 단어와 숙어(최대 6단어): 영영 사전 정의와 한글 뜻, 예문
-- 공학·AI 용어: 위키피디아 요약과 전문용어 사전(온용어)
+- 공학·AI 용어: 한글·영어 모두 위키백과에서 AI·컴퓨팅 분야 뜻을 골라 영·한 설명을 정리
 - 한-한: 표준국어대사전
 - 이미 저장한 단어는 중복 표시
 - PDF: 드래그 후 복사(Ctrl/⌘+C)하고 단축키를 누르면 복사한 텍스트로 조회
 
 준비물
 - Notion Integration 토큰과 단어장 DB (템플릿 복제: https://painted-plum-a54.notion.site/41af7cbca87081118028fe9bf5f1b8bf)
-- 한-한과 한글 전문용어는 국립국어원 API 키가 추가로 필요 (선택)
+- 한-한은 표준국어대사전 API 키가 추가로 필요 (선택). 공학·AI 용어는 키 없이 동작
 
 데이터
 - 별도 서버가 없습니다. 토큰과 키는 내 브라우저에만 저장됩니다.
@@ -50,7 +50,7 @@ FastVOCAB는 읽던 페이지를 벗어나지 않고 모르는 단어를 단어�
 | `clipboardRead` | PDF 뷰어처럼 선택 영역을 읽을 수 없는 페이지에서만, 사용자가 복사한 텍스트를 읽기 위해 |
 | 호스트 권한 | 아래 서비스에 조회·저장 요청을 보내기 위해 (서비스별 용도는 PRIVACY.md) |
 
-호스트: `api.notion.com`, `api.dictionaryapi.dev`, `en.wiktionary.org`, `www.dictionaryapi.com`, `api.mymemory.translated.net`, `en.wikipedia.org`, `ko.wikipedia.org`, `www.wikidata.org`, `stdict.korean.go.kr`, `kli.korean.go.kr`
+호스트: `api.notion.com`, `api.dictionaryapi.dev`, `en.wiktionary.org`, `www.dictionaryapi.com`, `api.mymemory.translated.net`, `en.wikipedia.org`, `ko.wikipedia.org`, `stdict.korean.go.kr`
 
 ## 데이터 사용 공개 (대시보드 체크 항목)
 - 원격 코드 사용: 아니오 (모든 코드가 패키지에 포함됨)

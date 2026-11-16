@@ -1,5 +1,5 @@
 const $ = (id) => document.getElementById(id);
-const KEYS = ['token', 'dbId', 'mwKey', 'stdictKey', 'ktermKey'];
+const KEYS = ['token', 'dbId', 'mwKey', 'stdictKey'];
 
 chrome.storage.local.get(KEYS).then((v) => KEYS.forEach((k) => ($(k).value = v[k] ?? '')));
 
